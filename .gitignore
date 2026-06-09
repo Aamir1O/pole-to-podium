@@ -1,0 +1,33 @@
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.streamlit/secrets.toml
+data/cache/
+cache/
+.ipynb_checkpoints/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+build/
+dist/
+*.egg-info/
+*.pkl
+*.joblib
+*.model
+*.db
+*.sqlite3
+data/*.csv
+
+# Ignore only cache
+data/cache/
+
+# Keep datasets
+!data/*.csv
+
+# Keep model
+!model/
