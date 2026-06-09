@@ -31,3 +31,4 @@ data/cache/
 
 # Keep model
 !model/
+.vscode/
