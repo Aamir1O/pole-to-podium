@@ -24,6 +24,13 @@ st.set_page_config(
 )
 
 inject_styles()
+st.markdown("""
+<style>
+body {
+    background: green !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 # ── metadata ──────────────────────────────────────────────────────────────────
 DRIVER_NAMES = {

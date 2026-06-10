@@ -1,4 +1,4 @@
-import streamlit as st
+import streamlit.components.v1 as components
 
 CSS = """
     :root {
@@ -103,8 +103,10 @@ CSS = """
     }
     .p2p-next-race .nr-name { font-size:0.78rem; font-weight:700; color:#fff; }
 
+    /* ── FIX 1: Nav radio — hide the whole radio widget ── */
     div[data-testid="stRadio"] { display:none !important; }
 
+    /* ── Nav links (custom HTML buttons) ─────────── */
     .p2p-nav-links {
         display:flex; align-items:stretch; margin-left:auto; height:100%;
     }
@@ -124,6 +126,7 @@ CSS = """
     .p2p-nav-link svg { opacity:0.55; flex-shrink:0; }
     .p2p-nav-link.active svg { opacity:1; }
 
+    /* ── FIX 1: Streamlit default button styles — transparent bg ── */
     button[kind="secondary"],
     button[data-testid="baseButton-secondary"] {
         background: transparent !important;
@@ -143,6 +146,7 @@ CSS = """
         background: transparent !important;
     }
 
+    /* ── Tertiary buttons (See full, See all) ────── */
     button[kind="tertiary"],
     button[data-testid="baseButton-tertiary"] {
         background: transparent !important;
@@ -162,6 +166,7 @@ CSS = """
         background: transparent !important;
     }
 
+    /* ── FIX 2: Section header row — title + button same line ── */
     div[data-testid="stHorizontalBlock"] {
         align-items: center !important;
         gap: 0.5rem !important;
@@ -176,9 +181,11 @@ CSS = """
         display: flex !important;
         align-items: center !important;
     }
+    /* column that holds section title — don't stretch vertically */
     div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:first-child > div {
         justify-content: flex-start !important;
     }
+    /* column that holds the button — push to right, vertically centred */
     div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"]:last-child > div {
         justify-content: flex-end !important;
     }
@@ -190,6 +197,7 @@ CSS = """
         height: auto !important;
         min-height: unset !important;
     }
+    /* remove Streamlit's default top margin on section title in these rows */
     div[data-testid="stHorizontalBlock"] .p2p-section-title {
         margin-top: 0 !important;
         margin-bottom: 0 !important;
@@ -511,23 +519,26 @@ _JS_ANIM = """
 
 
 def inject_styles():
-    st.html(
+    components.html(
         f"""
-        <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap');
-        </style>
-        <script>
-        (function() {{
-            const doc = window.parent.document;
-            if (doc.getElementById('p2p-styles')) return;
+    <script>
+    (function() {{
+        const doc = window.parent.document;
+        if (doc.getElementById('p2p-styles')) return;
 
-            const s = doc.createElement('style');
-            s.id = 'p2p-styles';
-            s.textContent = {repr(CSS)};
-            doc.head.appendChild(s);
+        const link = doc.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&display=swap';
+        doc.head.appendChild(link);
 
-            {_JS_ANIM}
-        }})();
-        </script>
-        """
+        const s = doc.createElement('style');
+        s.id = 'p2p-styles';
+        s.textContent = {repr(CSS)};
+        doc.head.appendChild(s);
+
+        {_JS_ANIM}
+    }})();
+    </script>
+    """,
+        height=0,
     )
