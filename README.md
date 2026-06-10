@@ -10,6 +10,12 @@ Live standings, ML-powered race predictions, tyre strategy analysis, and driver 
 
 <br />
 
+<br />
+
+[![Live Demo](https://img.shields.io/badge/Live_Demo-Visit_App-e10600?style=for-the-badge)](https://pole-to-podium-f1.streamlit.app/)
+
+<br /><br />
+
 ![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&logo=python&logoColor=white)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.x-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-336791?style=flat-square&logo=postgresql&logoColor=white)
