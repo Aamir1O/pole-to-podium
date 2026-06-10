@@ -16,9 +16,9 @@ Thumbs.db
 build/
 dist/
 *.egg-info/
-*.pkl
+
 *.joblib
-*.model
+
 *.db
 *.sqlite3
 data/*.csv
