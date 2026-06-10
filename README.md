@@ -227,17 +227,6 @@ Muted         #6b6b6b
 
 Inspired by Formula1.com, TradingView, and Bloomberg Terminal.
 
----
-
-## Roadmap
-
-- Live timing integration
-- Driver profile subpages
-- Cross-season comparison tool
-- Export to PDF and CSV
-- Mobile layout
-
----
 
 <div align="center">
 
