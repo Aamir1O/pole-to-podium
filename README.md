@@ -215,21 +215,15 @@ No season is hardcoded. `utils/data.py` reads all distinct years from the databa
 
 ---
 
-## Design
-
-```
-Background    #030303
-Surface       rgba(14, 14, 14, 0.92)
-Accent        #e10600
-Text          #f2f2f2
-Muted         #6b6b6b
-```
-
-Inspired by Formula1.com, TradingView, and Bloomberg Terminal.
-
 
 <div align="center">
 
-Pole to Podium 
+<br />
+
+Built by **[Aamir](https://github.com/Aamir1O)** &nbsp;·&nbsp; 2026
+
+<br />
+
+*From qualifying to the checkered flag — every data point, one platform.*
 
 </div>
