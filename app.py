@@ -193,6 +193,6 @@ elif page == "archive":
 # ── footer ─────────────────────────────────────────────────────────────────────
 render_html_block(
     '<div class="p2p-footer fade-up">'
-    'Pole to Podium · Built by Aamir · FastF1 · XGBoost · Supabase · Streamlit'
+    'Pole to Podium · Built by Aamir · '
     '</div>'
 )
