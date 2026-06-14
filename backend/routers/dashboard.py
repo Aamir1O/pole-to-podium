@@ -109,4 +109,6 @@ def get_dashboard_data():
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard data: {str(e)}")
+        import traceback
+        tb = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to fetch dashboard data: {str(e)}. Traceback: {tb}")

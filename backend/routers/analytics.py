@@ -95,4 +95,6 @@ def get_analytics_dashboard(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to generate analytics: {str(e)}")
+        import traceback
+        tb = traceback.format_exc()
+        raise HTTPException(status_code=500, detail=f"Failed to generate analytics: {str(e)}. Traceback: {tb}")
