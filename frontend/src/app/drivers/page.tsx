@@ -224,7 +224,7 @@ export default function DriversPage() {
             <div className="rounded-xl border border-neutral-900 bg-neutral-950/20 p-5">
               <h2 className="flex items-center gap-2 font-sans text-xs font-bold tracking-widest text-neutral-400 uppercase mb-4">
                 <span className="inline-block h-3.5 w-1 rounded bg-red-600"></span>
-                Points Progression (Top 5 Drivers)
+                Points Progression (Top 10 Drivers)
               </h2>
               <PlotlyChart data={progression_chart.data} layout={progression_chart.layout} height={340} />
             </div>

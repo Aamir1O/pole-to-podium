@@ -56,7 +56,7 @@ def get_dashboard_data():
         }
         
         # 4. Generate Plotly Championship Battle Chart
-        fig = championship_battle_chart(r26, DRIVER_NAMES, top_n=5)
+        fig = championship_battle_chart(r26, DRIVER_NAMES, top_n=10)
         championship_battle_json = fig_to_json(fig)
         
         # 5. Extract Standings & Schedule previews
@@ -101,9 +101,9 @@ def get_dashboard_data():
         return {
             "hero_stats": hero_stats,
             "next_race": next_race,
-            "driver_standings": driver_standings[:5],  # Preview limit 5
+            "driver_standings": driver_standings[:10],  # Preview limit 10 (fills the card height)
             "team_standings": team_standings[:5],      # Preview limit 5
-            "race_schedule": race_schedule[:5],        # Preview limit 5
+            "race_schedule": race_schedule[:10],        # Preview limit 10
             "championship_battle_chart": championship_battle_json,
             "win_probability_preview": win_prob_preview
         }

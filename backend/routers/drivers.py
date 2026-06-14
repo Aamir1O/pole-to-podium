@@ -47,9 +47,9 @@ def get_drivers_dashboard():
         points_chart_fig = driver_bar_chart(r26, DRIVER_NAMES, title="Driver Points 2026")
         points_chart = fig_to_json(points_chart_fig)
         
-        # 3. Points progression chart (Top 5)
-        top5 = r26.groupby("driver")["total_points"].sum().nlargest(5).index.tolist()
-        progression_chart_fig = driver_points_progression(r26, DRIVER_NAMES, top5)
+        # 3. Points progression chart (Top 10)
+        top10 = r26.groupby("driver")["total_points"].sum().nlargest(10).index.tolist()
+        progression_chart_fig = driver_points_progression(r26, DRIVER_NAMES, top10)
         progression_chart = fig_to_json(progression_chart_fig)
         
         return {

@@ -2,10 +2,10 @@ import os
 import pickle
 import numpy as np
 import pandas as pd
-import streamlit as st
+from functools import lru_cache
 
 
-@st.cache_resource
+@lru_cache(maxsize=1)
 def load_model():
     MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "model")
     with open(f"{MODEL_DIR}/model.pkl", "rb") as f:

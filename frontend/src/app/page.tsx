@@ -168,7 +168,7 @@ export default function DashboardPage() {
         <div className="rounded-xl border border-neutral-900 bg-neutral-950/20 p-5">
           <h2 className="flex items-center gap-2 font-sans text-xs font-bold tracking-widest text-neutral-400 uppercase">
             <span className="inline-block h-3.5 w-1 rounded bg-red-600"></span>
-            Championship Battle <span className="text-neutral-600">|</span> <span className="text-neutral-500">Top 5 Drivers</span>
+            Championship Battle <span className="text-neutral-600">|</span> <span className="text-neutral-500">Top 10 Drivers</span>
           </h2>
           <div className="mt-4">
             <PlotlyChart data={championship_battle_chart.data} layout={championship_battle_chart.layout} height={380} />

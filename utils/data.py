@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import streamlit as st
+from functools import lru_cache
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 
@@ -8,7 +8,7 @@ load_dotenv()
 DB_URL = os.getenv("DB_URL")
 
 
-@st.cache_resource
+@lru_cache(maxsize=1)
 def get_engine():
     return create_engine(
         DB_URL,
@@ -18,7 +18,7 @@ def get_engine():
     )
 
 
-@st.cache_data(ttl=300)
+@lru_cache(maxsize=1)
 def load_data():
     engine = get_engine()
     with engine.connect() as conn:
