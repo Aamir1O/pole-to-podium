@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.routers import status, dashboard, predictions, drivers, teams, telemetry, analytics
+from routers import status, dashboard, predictions, drivers, teams, telemetry, analytics
 
 app = FastAPI(
     title="Pole to Podium API",
