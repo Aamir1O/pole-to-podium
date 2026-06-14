@@ -1,3 +1,14 @@
+import os
+import sys
+
+# Add project root and backend directory to sys.path to allow running from anywhere
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(backend_dir)
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import status, dashboard, predictions, drivers, teams, telemetry, analytics
