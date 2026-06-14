@@ -26,4 +26,4 @@ def get_conn():
 def test_connection():
     with _engine.connect() as conn:
         conn.execute(text("SELECT 1"))
-    print("✅ DB connection OK")
+    print("[DB] Connection OK")

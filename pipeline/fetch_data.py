@@ -1,9 +1,23 @@
 import fastf1
 import pandas as pd
 import os
+import sys
 import logging
 import traceback
 from datetime import datetime
+
+# Overwrite built-in print with encoding-safe wrapper to prevent terminal UnicodeEncodeErrors
+_orig_print = print
+def print(*args, **kwargs):
+    encoding = sys.stdout.encoding or 'utf-8'
+    new_args = []
+    for arg in args:
+        if isinstance(arg, str):
+            new_args.append(arg.encode(encoding, errors='replace').decode(encoding))
+        else:
+            new_args.append(arg)
+    _orig_print(*new_args, **kwargs)
+
 
 logging.getLogger("fastf1").setLevel(logging.ERROR)
 
@@ -283,7 +297,13 @@ def fetch_season(year):
         race_id = f"{year}_R{int(event['RoundNumber']):02d}"
 
         if race_id in existing_ids:
-            print(f"  🔄 Updating {race_id}")
+            race_datetime = race_date.to_pydatetime().replace(tzinfo=None)
+            days_ago = (now - race_datetime).days
+            if year < now.year or days_ago > 7:
+                print(f"  ⏭  Round {int(event['RoundNumber'])} ({event['EventName']}) — already saved")
+                continue
+            
+            print(f"  🔄 Updating recent round: {race_id}")
             all_results  = [r for r in all_results  if r["race_id"] != race_id]
             all_laps     = [r for r in all_laps     if r["race_id"] != race_id]
             all_weather  = [r for r in all_weather  if r["race_id"] != race_id]
