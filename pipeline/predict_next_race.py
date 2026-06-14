@@ -108,6 +108,9 @@ pred = pd.DataFrame(rows).dropna(subset=FEATURES)
 X    = pred[FEATURES].astype(float)
 
 pred["win_probability"] = model.predict_proba(X)[:,1]
+prob_sum = pred["win_probability"].sum()
+if prob_sum > 0:
+    pred["win_probability"] = pred["win_probability"] / prob_sum
 pred = pred.sort_values("win_probability", ascending=False)
 
 print(f"\n{'='*58}")

@@ -59,6 +59,7 @@ export default function RaceCenterPage() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'overview' | 'analytics' | 'telemetry'>('overview');
   const [error, setError] = useState<string | null>(null);
+  const [selectedDrivers, setSelectedDrivers] = useState<string[]>([]);
 
   const fetchTelemetry = (round: number, drvA: string, drvB: string) => {
     setTelemetryLoading(true);
@@ -77,12 +78,22 @@ export default function RaceCenterPage() {
       });
   };
 
-  const fetchRaceDetails = (raceId: string) => {
+  const fetchRaceDetails = (raceId: string, driverCodes?: string[]) => {
     setLoading(true);
-    fetch(`${API_URL}/api/v1/analytics?race_id=${raceId}`)
+    let url = `${API_URL}/api/v1/analytics?race_id=${raceId}`;
+    if (driverCodes && driverCodes.length > 0) {
+      const queryParams = new URLSearchParams();
+      queryParams.append('race_id', raceId);
+      driverCodes.forEach(d => queryParams.append('drivers', d));
+      url = `${API_URL}/api/v1/analytics?${queryParams.toString()}`;
+    }
+    fetch(url)
       .then((res) => res.json())
       .then((data) => {
         setAnalyticsData(data);
+        if (data.selected_drivers) {
+          setSelectedDrivers(data.selected_drivers);
+        }
         setLoading(false);
         
         // Auto-fetch telemetry for the top two drivers in this race if finished
@@ -245,6 +256,71 @@ export default function RaceCenterPage() {
           {activeTab === 'analytics' && (
             <div className="space-y-6">
               
+              {/* Driver Filter Selector */}
+              <div className="rounded-xl border border-neutral-900 bg-neutral-950/30 p-5 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                  <div>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                      <Sliders className="h-4 w-4 text-red-600" />
+                      Filter Drivers to Analyze
+                    </h3>
+                    <p className="text-[10px] text-neutral-500 mt-1">Select which drivers' data to compare in the charts below (maximum recommended: 8-10 for readability)</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => {
+                        const allCodes = analyticsData.drivers_in_race.map((d: any) => d.code);
+                        setSelectedDrivers(allCodes);
+                        fetchRaceDetails(selectedRace, allCodes);
+                      }}
+                      className="px-2.5 py-1 text-[9px] font-mono font-bold text-neutral-400 bg-neutral-900 border border-neutral-850 rounded hover:text-white hover:border-neutral-700 transition"
+                    >
+                      SELECT ALL
+                    </button>
+                    <button
+                      onClick={() => {
+                        const topOne = [analyticsData.drivers_in_race[0].code];
+                        setSelectedDrivers(topOne);
+                        fetchRaceDetails(selectedRace, topOne);
+                      }}
+                      className="px-2.5 py-1 text-[9px] font-mono font-bold text-neutral-400 bg-neutral-900 border border-neutral-850 rounded hover:text-white hover:border-neutral-700 transition"
+                    >
+                      CLEAR
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {analyticsData.drivers_in_race.map((d: DriverInRace) => {
+                    const isSelected = selectedDrivers.includes(d.code);
+                    return (
+                      <button
+                        key={d.code}
+                        onClick={() => {
+                          let newSelected: string[];
+                          if (isSelected) {
+                            if (selectedDrivers.length <= 1) return;
+                            newSelected = selectedDrivers.filter(c => c !== d.code);
+                          } else {
+                            newSelected = [...selectedDrivers, d.code];
+                          }
+                          setSelectedDrivers(newSelected);
+                          fetchRaceDetails(selectedRace, newSelected);
+                        }}
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold uppercase transition ${
+                          isSelected
+                            ? 'bg-neutral-950 border-red-600 text-white shadow-[0_0_8px_rgba(225,6,0,0.15)]'
+                            : 'bg-neutral-950/20 border-neutral-900 text-neutral-500 hover:border-neutral-800 hover:text-neutral-400'
+                        }`}
+                      >
+                        <span className="w-1.5 h-3 rounded-[1px]" style={{ backgroundColor: d.color }}></span>
+                        <span>{d.code}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Row 1: Tyre Strategy & Degradation */}
               <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                 <div className="rounded-xl border border-neutral-900 bg-neutral-950/20 p-5">

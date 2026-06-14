@@ -150,6 +150,11 @@ def build_predictions(
         pred[features].astype(float)
     )[:, 1]
 
+    # Normalize so that probabilities sum to 1.0 (100%)
+    prob_sum = pred["win_probability"].sum()
+    if prob_sum > 0:
+        pred["win_probability"] = pred["win_probability"] / prob_sum
+
     return pred.sort_values(
         "win_probability", ascending=False
     ).reset_index(drop=True)

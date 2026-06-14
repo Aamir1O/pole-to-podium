@@ -53,10 +53,17 @@ def get_analytics_dashboard(
         if not race_id:
             raise HTTPException(status_code=404, detail="No race rounds completed yet in this season.")
             
-        # 3. Find drivers participating in this specific race
-        drivers_in_race_list = sorted(
-            l26[l26["race_id"] == race_id]["driver"].dropna().unique().tolist()
-        )
+        # 3. Find drivers participating in this specific race, sorted by finish position if available
+        race_results = r26[r26["race_id"] == race_id]
+        if not race_results.empty:
+            drivers_in_race_list = (
+                race_results.sort_values("finish_pos")["driver"]
+                .dropna().unique().tolist()
+            )
+        else:
+            drivers_in_race_list = sorted(
+                l26[l26["race_id"] == race_id]["driver"].dropna().unique().tolist()
+            )
         drivers_in_race = [
             {**get_driver_display(d), "code": d}
             for d in drivers_in_race_list

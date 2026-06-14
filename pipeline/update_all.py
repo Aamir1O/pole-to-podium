@@ -112,8 +112,6 @@ def main():
     logger.info("Step 1: Fetching latest FastF1 data...")
     logger.info("==========================================")
     try:
-        logger.info("Fetching 2025 season schedule/data...")
-        fetch_season(2025)
         logger.info("Fetching 2026 season schedule/data...")
         fetch_season(2026)
         logger.info("FastF1 data ingestion completed.")
