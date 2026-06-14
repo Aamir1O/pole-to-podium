@@ -12,6 +12,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface RaceItem {
   race_id: string;
@@ -61,7 +62,7 @@ export default function RaceCenterPage() {
 
   const fetchTelemetry = (round: number, drvA: string, drvB: string) => {
     setTelemetryLoading(true);
-    fetch(`http://127.0.0.1:8000/api/v1/telemetry?season=2026&round=${round}&session=R&driver_a=${drvA}&driver_b=${drvB}`)
+    fetch(`${API_URL}/api/v1/telemetry?season=2026&round=${round}&session=R&driver_a=${drvA}&driver_b=${drvB}`)
       .then((res) => {
         if (!res.ok) throw new Error('No telemetry');
         return res.json();
@@ -78,7 +79,7 @@ export default function RaceCenterPage() {
 
   const fetchRaceDetails = (raceId: string) => {
     setLoading(true);
-    fetch(`http://127.0.0.1:8000/api/v1/analytics?race_id=${raceId}`)
+    fetch(`${API_URL}/api/v1/analytics?race_id=${raceId}`)
       .then((res) => res.json())
       .then((data) => {
         setAnalyticsData(data);
@@ -99,7 +100,7 @@ export default function RaceCenterPage() {
 
   // 1. Fetch initial list of races and default analytics
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/analytics')
+    fetch(`${API_URL}/api/v1/analytics`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load F1 races list');
         return res.json();

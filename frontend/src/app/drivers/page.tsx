@@ -9,6 +9,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface DriverListItem {
   position: number;
@@ -63,7 +64,7 @@ export default function DriversPage() {
 
   const fetchComparison = (drvA: string, drvB: string) => {
     setCompareLoading(true);
-    fetch(`http://127.0.0.1:8000/api/v1/drivers/compare?driver_a=${drvA}&driver_b=${drvB}`)
+    fetch(`${API_URL}/api/v1/drivers/compare?driver_a=${drvA}&driver_b=${drvB}`)
       .then((res) => {
         if (!res.ok) throw new Error('Comparison failed');
         return res.json();
@@ -76,7 +77,7 @@ export default function DriversPage() {
   };
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/drivers')
+    fetch(`${API_URL}/api/v1/drivers`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load driver standings');
         return res.json();

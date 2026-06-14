@@ -8,6 +8,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface PredictionItem {
   position: number;
@@ -41,7 +42,7 @@ export default function PredictionsPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/predictions')
+    fetch(`${API_URL}/api/v1/predictions`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load predictions');
         return res.json();

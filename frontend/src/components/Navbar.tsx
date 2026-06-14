@@ -13,6 +13,7 @@ import {
   BarChart3, 
   Calendar 
 } from 'lucide-react';
+import { API_URL } from '@/lib/api';
 
 const NAV_ITEMS = [
   { path: '/', label: 'Home', icon: LayoutDashboard },
@@ -30,7 +31,7 @@ export default function Navbar() {
 
   useEffect(() => {
     // Fetch next race info from the dashboard endpoint
-    fetch('http://127.0.0.1:8000/api/v1/dashboard')
+    fetch(`${API_URL}/api/v1/dashboard`)
       .then((res) => res.json())
       .then((data) => {
         if (data.next_race && data.next_race.name) {

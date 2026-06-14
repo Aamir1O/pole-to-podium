@@ -9,6 +9,7 @@ import {
   ChevronRight 
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface DriverMeta {
   name: string;
@@ -90,7 +91,7 @@ export default function TelemetryPage() {
     setData(null);
 
     const query = `season=${season}&round=${roundNum}&session=${sessionType}&driver_a=${driverA}&driver_b=${driverB}`;
-    fetch(`http://127.0.0.1:8000/api/v1/telemetry?${query}`)
+    fetch(`${API_URL}/api/v1/telemetry?${query}`)
       .then((res) => {
         if (!res.ok) {
           return res.json().then((errData) => {

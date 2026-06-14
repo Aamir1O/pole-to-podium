@@ -10,6 +10,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface HeroStats {
   races_complete: number;
@@ -79,7 +80,7 @@ export default function DashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/dashboard')
+    fetch(`${API_URL}/api/v1/dashboard`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load dashboard data');
         return res.json();

@@ -8,6 +8,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface RaceItem {
   race_id: string;
@@ -47,7 +48,7 @@ export default function AnalyticsHubPage() {
 
   const fetchAnalytics = (raceId: string, driverFilter: string[]) => {
     setLoading(true);
-    let url = `http://127.0.0.1:8000/api/v1/analytics?race_id=${raceId}`;
+    let url = `${API_URL}/api/v1/analytics?race_id=${raceId}`;
     if (driverFilter && driverFilter.length > 0) {
       driverFilter.forEach((d) => {
         url += `&drivers=${d}`;
@@ -67,7 +68,7 @@ export default function AnalyticsHubPage() {
 
   // 1. Fetch initial setup (list of races)
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/analytics')
+    fetch(`${API_URL}/api/v1/analytics`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load analytics GP list');
         return res.json();

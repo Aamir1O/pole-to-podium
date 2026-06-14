@@ -9,6 +9,7 @@ import {
   AlertTriangle 
 } from 'lucide-react';
 import PlotlyChart from '@/components/PlotlyChart';
+import { API_URL } from '@/lib/api';
 
 interface TeamListItem {
   position: number;
@@ -45,7 +46,7 @@ export default function TeamsPage() {
 
   const fetchComparison = (teamA: string, teamB: string) => {
     setCompareLoading(true);
-    fetch(`http://127.0.0.1:8000/api/v1/teams/compare?team_a=${encodeURIComponent(teamA)}&team_b=${encodeURIComponent(teamB)}`)
+    fetch(`${API_URL}/api/v1/teams/compare?team_a=${encodeURIComponent(teamA)}&team_b=${encodeURIComponent(teamB)}`)
       .then((res) => {
         if (!res.ok) throw new Error('Comparison failed');
         return res.json();
@@ -58,7 +59,7 @@ export default function TeamsPage() {
   };
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/v1/teams')
+    fetch(`${API_URL}/api/v1/teams`)
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load constructor standings');
         return res.json();
