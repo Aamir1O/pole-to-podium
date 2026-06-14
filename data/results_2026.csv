@@ -111,11 +111,11 @@ race_id,year,round,race_name,circuit,date,driver,team,finish_pos,grid_pos,points
 2026_R05,2026,5,Canadian Grand Prix,Montréal,2026-05-24,LIN,Racing Bulls,22.0,9.0,0.0,1.0,Did not start
 2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,ANT,Mercedes,1.0,1.0,25.0,0.0,Finished
 2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,HAM,Ferrari,2.0,3.0,18.0,0.0,Finished
-2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,HAD,Red Bull Racing,3.0,5.0,15.0,0.0,Finished
-2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,PIA,McLaren,4.0,7.0,12.0,0.0,Finished
-2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,LAW,Racing Bulls,5.0,10.0,10.0,0.0,Finished
-2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,LIN,Racing Bulls,6.0,15.0,8.0,0.0,Finished
-2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,GAS,Alpine,7.0,9.0,6.0,0.0,Finished
+2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,GAS,Alpine,3.0,9.0,15.0,0.0,Finished
+2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,HAD,Red Bull Racing,4.0,5.0,12.0,0.0,Finished
+2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,PIA,McLaren,5.0,7.0,10.0,0.0,Finished
+2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,LAW,Racing Bulls,6.0,10.0,8.0,0.0,Finished
+2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,LIN,Racing Bulls,7.0,15.0,6.0,0.0,Finished
 2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,ALB,Williams,8.0,11.0,4.0,0.0,Finished
 2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,OCO,Haas F1 Team,9.0,17.0,2.0,0.0,Finished
 2026_R06,2026,6,Monaco Grand Prix,Monte Carlo,2026-06-07,ALO,Aston Martin,10.0,21.0,1.0,0.0,Finished

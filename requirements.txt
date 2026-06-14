@@ -11,3 +11,5 @@ fastf1==3.8.3
 pytz==2026.2
 requests==2.34.2
 pyarrow==24.0.0
+fastapi==0.115.8
+uvicorn==0.34.0

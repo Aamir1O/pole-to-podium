@@ -15,11 +15,41 @@ def load_model():
     return model, enc
 
 
+def _get_practice_features(practice_df: pd.DataFrame, race_id: str) -> pd.DataFrame:
+    """
+    Best lap per driver across all available FP sessions for a race_id.
+    Returns DataFrame with driver, team, best_lap_secs, estimated_grid.
+    """
+    if practice_df is None or practice_df.empty:
+        return pd.DataFrame()
+
+    fp = practice_df[practice_df["race_id"] == race_id].copy()
+    if fp.empty:
+        return pd.DataFrame()
+
+    fp_best = (
+        fp.sort_values("best_lap_secs")
+        .groupby("driver")
+        .first()
+        .reset_index()
+    )
+    fp_best = fp_best.sort_values("best_lap_secs").reset_index(drop=True)
+    fp_best["estimated_grid"] = fp_best.index + 1
+
+    # which sessions are available
+    sessions = sorted(fp["session"].unique().tolist())
+    fp_best["latest_session"] = sessions[-1] if sessions else "FP1"
+
+    return fp_best
+
+
 def build_predictions(
     results_df, laps_df, qualifying_df, weather_df,
     race_id, circuit_name,
     le_driver, le_team, le_circuit, features, model,
+    practice_df: pd.DataFrame = None,
 ):
+    # ── historical features ───────────────────────────────────────────
     avg_lap = (
         laps_df[laps_df["lap_time_secs"].notna()]
         .groupby("driver")["lap_time_secs"]
@@ -42,6 +72,7 @@ def build_predictions(
         .reset_index()[["driver", "team"]]
     )
 
+    # ── weather ───────────────────────────────────────────────────────
     wrow           = weather_df[weather_df["race_id"] == race_id]
     avg_track_temp = float(wrow["avg_track_temp"].values[0]) if not wrow.empty else 28.0
     avg_humidity   = float(wrow["avg_humidity"].values[0])   if not wrow.empty else 60.0
@@ -51,23 +82,54 @@ def build_predictions(
         if circuit_name in le_circuit.classes_ else 0
     )
 
+    # ── decide data source: quali or practice fallback ────────────────
     quali = qualifying_df[qualifying_df["race_id"] == race_id].copy()
-    rows  = []
-    for _, q in quali.iterrows():
-        driver     = q["driver"]
-        team_row   = latest_team[latest_team["driver"] == driver]
-        team       = team_row["team"].values[0] if not team_row.empty else "Unknown"
-        lap_row    = avg_lap[avg_lap["driver"] == driver]
-        avg_l      = float(lap_row["avg_lap_time"].values[0]) if not lap_row.empty else np.nan
-        wr_row     = win_rate[win_rate["driver"] == driver]
-        wr         = float(wr_row["win_rate"].values[0]) if not wr_row.empty else 0.0
+    fp    = _get_practice_features(practice_df, race_id)
+
+    has_quali    = not quali.empty
+    has_practice = not fp.empty
+
+    if not has_quali and not has_practice:
+        return pd.DataFrame()
+
+    # ── build rows ────────────────────────────────────────────────────
+    rows        = []
+    data_source = "Qualifying" if has_quali else f"Practice ({fp['latest_session'].iloc[0]})"
+
+    if has_quali:
+        drivers_iter = quali.iterrows()
+    else:
+        # use practice, estimate grid from pace order
+        drivers_iter = fp.iterrows()
+
+    for _, q in drivers_iter:
+        driver = q["driver"]
+
+        team_row = latest_team[latest_team["driver"] == driver]
+        team     = team_row["team"].values[0] if not team_row.empty else q.get("team", "Unknown")
+
+        lap_row  = avg_lap[avg_lap["driver"] == driver]
+        avg_l    = float(lap_row["avg_lap_time"].values[0]) if not lap_row.empty else np.nan
+
+        wr_row   = win_rate[win_rate["driver"] == driver]
+        wr       = float(wr_row["win_rate"].values[0]) if not wr_row.empty else 0.0
+
         driver_enc = int(le_driver.transform([driver])[0]) if driver in le_driver.classes_ else -1
         team_enc   = int(le_team.transform([team])[0])     if team in le_team.classes_     else -1
-        q3         = q["q3_secs"] if pd.notna(q.get("q3_secs", np.nan)) else q["q1_secs"]
+
+        if has_quali:
+            grid_pos = float(q["grid_pos"])
+            q3       = q["q3_secs"] if pd.notna(q.get("q3_secs", np.nan)) else q["q1_secs"]
+            q3_val   = float(q3) if pd.notna(q3) else np.nan
+        else:
+            # estimated grid from practice pace ranking
+            grid_pos = float(q["estimated_grid"])
+            q3_val   = float(q["best_lap_secs"]) if pd.notna(q["best_lap_secs"]) else np.nan
+
         rows.append({
             "driver":         driver,
             "team":           team,
-            "grid_pos":       float(q["grid_pos"]),
+            "grid_pos":       grid_pos,
             "driver_enc":     driver_enc,
             "team_enc":       team_enc,
             "circuit_enc":    circuit_enc,
@@ -75,12 +137,19 @@ def build_predictions(
             "avg_track_temp": avg_track_temp,
             "avg_humidity":   avg_humidity,
             "rainfall":       rainfall,
-            "q3_secs":        float(q3) if pd.notna(q3) else np.nan,
+            "q3_secs":        q3_val,
             "win_rate":       wr,
+            "data_source":    data_source,
         })
 
     pred = pd.DataFrame(rows).dropna(subset=features)
     if pred.empty:
         return pred
-    pred["win_probability"] = model.predict_proba(pred[features].astype(float))[:, 1]
-    return pred.sort_values("win_probability", ascending=False).reset_index(drop=True)
+
+    pred["win_probability"] = model.predict_proba(
+        pred[features].astype(float)
+    )[:, 1]
+
+    return pred.sort_values(
+        "win_probability", ascending=False
+    ).reset_index(drop=True)
