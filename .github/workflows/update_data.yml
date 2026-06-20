@@ -1,0 +1,52 @@
+name: Update F1 Session Data
+
+on:
+  schedule:
+    # Run daily at 06:00 UTC
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    # Allows manual triggering from the GitHub Actions tab
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip' # Caches dependency downloads
+
+      - name: Cache FastF1 session data
+        uses: actions/cache@v4
+        with:
+          path: data/cache
+          key: fastf1-cache-${{ runner.os }}-${{ hashFiles('pipeline/fetch_data.py') }}
+          restore-keys: |
+            fastf1-cache-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run ETL Pipeline
+        env:
+          DB_URL: ${{ secrets.DB_URL }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          python pipeline/update_all.py
+
+      - name: Log status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            echo "::notice::ETL Pipeline ran successfully and data has been synchronized to Supabase."
+          else
+            echo "::error::ETL Pipeline run failed. Please check the logs above to identify the issue."
+          fi
