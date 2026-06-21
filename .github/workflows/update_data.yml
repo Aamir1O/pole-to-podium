@@ -3,7 +3,7 @@ name: Update F1 Session Data
 on:
   schedule:
     # Run daily at 06:00 UTC
-    - cron: '0 6 * * *'
+    - cron: '17 6 * * *'
   workflow_dispatch:
     # Allows manual triggering from the GitHub Actions tab
 
