@@ -26,24 +26,81 @@ def get_session_telemetry(
         
         # 1. Fetch telemetry session ID and circuit name from sessions_f1
         session = get_session_info(season, round_num, session_type)
-        if not session:
-            raise HTTPException(
-                status_code=404, 
-                detail=f"Telemetry session not found for {season} R{round_num} {session_type}."
-            )
-            
-        session_id = session["id"]
-        circuit_key = session["circuit_key"]
+        session_id = session["id"] if session else None
         
         # 2. Fetch telemetry channel traces for both drivers
-        tel_a = get_driver_telemetry(session_id, driver_a)
-        tel_b = get_driver_telemetry(session_id, driver_b)
+        tel_a = get_driver_telemetry(session_id, driver_a) if session_id else None
+        tel_b = get_driver_telemetry(session_id, driver_b) if session_id else None
         
-        if not tel_a or not tel_b:
+        if not session or not tel_a or not tel_b:
+            # We are missing the session or driver telemetry. Let's trigger the pipeline loader dynamically!
+            try:
+                from pipeline.session_loader import (
+                    load_session,
+                    upsert_session,
+                    align_telemetry,
+                    upsert_telemetry,
+                    detect_and_save_corners,
+                    compute_and_save_cpi,
+                    compute_and_save_delta
+                )
+                from db.connection import get_engine
+                
+                engine = get_engine()
+                
+                # 1. load FastF1 session
+                f1_session = load_session(season, round_num, session_type)
+                circuit_key = f1_session.event["Location"].lower().replace(" ", "_")
+                session_date = f1_session.date.date() if hasattr(f1_session.date, "date") else f1_session.date
+                
+                # 2. save session metadata
+                session_id = upsert_session(
+                    engine, season, round_num, session_type,
+                    circuit_key, session_date
+                )
+                
+                # 3. align telemetry
+                data = align_telemetry(f1_session, driver_a, driver_b)
+                grid = data["grid"]
+                t_a = data["driver_a"]
+                t_b = data["driver_b"]
+                
+                # 4. save telemetry for both drivers
+                lap_id_a = upsert_telemetry(engine, session_id, driver_a, data["lap_time_a"], t_a)
+                lap_id_b = upsert_telemetry(engine, session_id, driver_b, data["lap_time_b"], t_b)
+                
+                # 5. detect corners (use driver A speed as reference)
+                corners = detect_and_save_corners(engine, circuit_key, grid, np.array(t_a["Speed"]))
+                
+                # 6. compute and save CPI
+                compute_and_save_cpi(engine, lap_id_a, lap_id_b,
+                                      t_a, t_b, corners, circuit_key, engine)
+                
+                # 7. compute and save delta
+                compute_and_save_delta(engine, session_id, driver_a, driver_b, grid, t_a, t_b)
+                
+                # Refetch after loading
+                session = get_session_info(season, round_num, session_type)
+                session_id = session["id"] if session else None
+                tel_a = get_driver_telemetry(session_id, driver_a) if session_id else None
+                tel_b = get_driver_telemetry(session_id, driver_b) if session_id else None
+                
+            except Exception as e:
+                import traceback
+                traceback.print_exc()
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Telemetry loader failed for {season} R{round_num} {session_type} ({driver_a} vs {driver_b}): {str(e)}"
+                )
+                
+        if not session or not tel_a or not tel_b:
             raise HTTPException(
                 status_code=404,
                 detail=f"Telemetry traces not found for one or both drivers ({driver_a} vs {driver_b}) in this session."
             )
+            
+        session_id = session["id"]
+        circuit_key = session["circuit_key"]
             
         # 3. Fetch pre-computed delta trace
         delta_trace = get_delta_trace(session_id, driver_a, driver_b)

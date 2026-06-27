@@ -1,6 +1,13 @@
 import argparse
 import sys
 import os
+
+# Reconfigure stdout/stderr to use UTF-8 to prevent encoding errors on Windows terminal
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 import numpy as np
 import fastf1
 
@@ -157,22 +164,47 @@ def compute_and_save_cpi(engine, lap_id_a, lap_id_b,
         if not corner_id:
             continue
         rows.append({
-            "lap_id": lap_id, "corner_id": corner_id,
-            "entry_score": row["entry_score"],
-            "apex_score":  row["apex_score"],
-            "exit_score":  row["exit_score"],
-            "cpi":         row["cpi"],
+            "lap_id": lap_id,
+            "corner_id": corner_id,
+            "entry_speed_kph": float(row["entry"]) if pd.notna(row["entry"]) else None,
+            "brake_point_m": float(row["brake_point_m"]) if pd.notna(row["brake_point_m"]) else None,
+            "brake_duration_m": float(row["brake_duration_m"]) if pd.notna(row["brake_duration_m"]) else None,
+            "apex_speed_kph": float(row["apex"]) if pd.notna(row["apex"]) else None,
+            "exit_speed_kph": float(row["exit"]) if pd.notna(row["exit"]) else None,
+            "throttle_point_m": float(row["throttle_point_m"]) if pd.notna(row["throttle_point_m"]) else None,
+            "time_to_full_throttle_s": float(row["time_to_full_throttle_s"]) if pd.notna(row["time_to_full_throttle_s"]) else None,
+            "entry_score": float(row["entry_score"]) if pd.notna(row["entry_score"]) else None,
+            "apex_score": float(row["apex_score"]) if pd.notna(row["apex_score"]) else None,
+            "exit_score": float(row["exit_score"]) if pd.notna(row["exit_score"]) else None,
+            "cpi": float(row["cpi"]) if pd.notna(row["cpi"]) else None,
+            "corner_time_s": float(row["corner_time_s"]) if pd.notna(row["corner_time_s"]) else None,
         })
 
     with engine_db.begin() as conn:
         for r in rows:
             conn.execute(text("""
                 INSERT INTO corner_metrics
-                    (lap_id, corner_id, entry_score, apex_score, exit_score, cpi)
+                    (lap_id, corner_id, entry_speed_kph, brake_point_m, brake_duration_m,
+                     apex_speed_kph, exit_speed_kph, throttle_point_m, time_to_full_throttle_s,
+                     entry_score, apex_score, exit_score, cpi, corner_time_s)
                 VALUES
-                    (:lap_id, :corner_id, :entry_score, :apex_score, :exit_score, :cpi)
+                    (:lap_id, :corner_id, :entry_speed_kph, :brake_point_m, :brake_duration_m,
+                     :apex_speed_kph, :exit_speed_kph, :throttle_point_m, :time_to_full_throttle_s,
+                     :entry_score, :apex_score, :exit_score, :cpi, :corner_time_s)
                 ON CONFLICT (lap_id, corner_id)
-                DO UPDATE SET cpi = EXCLUDED.cpi
+                DO UPDATE SET 
+                    entry_speed_kph = EXCLUDED.entry_speed_kph,
+                    brake_point_m = EXCLUDED.brake_point_m,
+                    brake_duration_m = EXCLUDED.brake_duration_m,
+                    apex_speed_kph = EXCLUDED.apex_speed_kph,
+                    exit_speed_kph = EXCLUDED.exit_speed_kph,
+                    throttle_point_m = EXCLUDED.throttle_point_m,
+                    time_to_full_throttle_s = EXCLUDED.time_to_full_throttle_s,
+                    entry_score = EXCLUDED.entry_score,
+                    apex_score = EXCLUDED.apex_score,
+                    exit_score = EXCLUDED.exit_score,
+                    cpi = EXCLUDED.cpi,
+                    corner_time_s = EXCLUDED.corner_time_s
             """), r)
     print(f"✅ CPI saved for {len(rows)} corner × driver combinations")
 

@@ -4,6 +4,13 @@ from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
 import pickle
 import os
+import sys
+
+# Reconfigure stdout/stderr to use UTF-8 to prevent encoding errors on Windows terminal
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 load_dotenv()
 DB_URL = os.getenv("DB_URL")
@@ -34,19 +41,60 @@ print(f"\n📡 Latest qualifying: {latest_race_id}")
 
 # get race info
 race_info = results[results["race_id"] == latest_race_id]
-race_name = race_info["race_name"].iloc[0] if not race_info.empty else latest_race_id
-circuit   = race_info["circuit"].iloc[0] if not race_info.empty else "Unknown"
+if not race_info.empty:
+    race_name = race_info["race_name"].iloc[0]
+    circuit   = race_info["circuit"].iloc[0]
+else:
+    # If the race results don't exist yet, get details from fastf1 schedule fallback
+    try:
+        import fastf1
+        # Set cache directory relative to project root
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        cache_dir = os.path.join(base_dir, "data", "cache")
+        fastf1.Cache.enable_cache(cache_dir)
+        
+        parts = latest_race_id.split("_")
+        year = int(parts[0])
+        rnd = int(parts[1][1:]) if len(parts) > 1 and parts[1].startswith("R") else None
+        
+        if rnd is not None:
+            sched = fastf1.get_event_schedule(year, include_testing=False)
+            event = sched[sched["RoundNumber"] == rnd]
+            if not event.empty:
+                race_name = event["EventName"].iloc[0]
+                circuit   = event["Location"].iloc[0]
+            else:
+                race_name = latest_race_id
+                circuit = "Unknown"
+        else:
+            race_name = latest_race_id
+            circuit = "Unknown"
+    except Exception as e:
+        race_name = latest_race_id
+        circuit = "Unknown"
+
 print(f"   Race    : {race_name}")
 print(f"   Circuit : {circuit}")
 
 # historical features
-avg_lap = (
-    laps[laps["lap_time_secs"].notna()]
-    .groupby("driver")["lap_time_secs"]
-    .mean()
-    .reset_index()
-    .rename(columns={"lap_time_secs": "avg_lap_time"})
-)
+if not laps.empty:
+    avg_lap_by_race = (
+        laps[laps["lap_time_secs"].notna()]
+        .groupby(["race_id", "driver"])["lap_time_secs"]
+        .mean()
+        .reset_index()
+    )
+    race_means = avg_lap_by_race.groupby("race_id")["lap_time_secs"].transform("mean")
+    avg_lap_by_race["lap_time_delta_pct"] = (avg_lap_by_race["lap_time_secs"] - race_means) / race_means
+    
+    avg_lap = (
+        avg_lap_by_race.groupby("driver")["lap_time_delta_pct"]
+        .mean()
+        .reset_index()
+        .rename(columns={"lap_time_delta_pct": "avg_lap_time"})
+    )
+else:
+    avg_lap = pd.DataFrame(columns=["driver", "avg_lap_time"])
 
 total_races = results.groupby("driver").size().reset_index(name="total_races")
 total_wins  = results[results["finish_pos"]==1].groupby("driver").size().reset_index(name="total_wins")
@@ -71,6 +119,9 @@ circuit_enc = int(le_circuit.transform([circuit])[0]) if circuit in le_circuit.c
 # build rows
 quali = qualifying[qualifying["race_id"] == latest_race_id].copy()
 quali = quali.drop_duplicates(subset=["driver"])
+quali["best_q_secs"] = quali["q3_secs"].fillna(quali["q2_secs"]).fillna(quali["q1_secs"])
+pole_time = quali["best_q_secs"].min()
+
 rows = []
 for _, q in quali.iterrows():
     driver = q["driver"]
@@ -79,7 +130,7 @@ for _, q in quali.iterrows():
     team     = team_row["team"].values[0] if not team_row.empty else "Unknown"
 
     lap_row  = avg_lap[avg_lap["driver"] == driver]
-    avg_l    = float(lap_row["avg_lap_time"].values[0]) if not lap_row.empty else np.nan
+    avg_l    = float(lap_row["avg_lap_time"].values[0]) if not lap_row.empty else 0.0
 
     wr_row   = win_rate[win_rate["driver"] == driver]
     wr       = float(wr_row["win_rate"].values[0]) if not wr_row.empty else 0.0
@@ -87,7 +138,8 @@ for _, q in quali.iterrows():
     driver_enc = int(le_driver.transform([driver])[0]) if driver in le_driver.classes_ else -1
     team_enc   = int(le_team.transform([team])[0])     if team in le_team.classes_     else -1
 
-    q3 = q["q3_secs"] if pd.notna(q["q3_secs"]) else q["q1_secs"]
+    best_q = float(q["best_q_secs"]) if pd.notna(q["best_q_secs"]) else pole_time
+    q3_delta = best_q - pole_time
 
     rows.append({
         "driver"        : driver,
@@ -100,7 +152,7 @@ for _, q in quali.iterrows():
         "avg_track_temp": avg_track_temp,
         "avg_humidity"  : avg_humidity,
         "rainfall"      : rainfall,
-        "q3_secs"       : float(q3) if pd.notna(q3) else np.nan,
+        "q3_secs"       : q3_delta,
         "win_rate"      : wr,
     })
 
